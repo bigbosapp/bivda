@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BIVDA - Business Intelligence & Visualisasi Data Aplikasi</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen font-sans flex flex-col">
+
+  <!-- APP CONTAINER -->
+  <div id="app" class="flex-1 flex flex-col">
+    <!-- NAVBAR / HEADER -->
+    <header id="mainHeader" class="bg-slate-900 text-white shadow-md sticky top-0 z-30 hidden">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="bg-indigo-600 p-2 rounded-lg text-white">
+            <i data-lucide="line-chart" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold tracking-wider text-indigo-400">BIVDA</h1>
+            <p class="text-xs text-slate-400 hidden sm:block">Business Intelligence & Visualisasi Data</p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <div class="text-right hidden sm:block">
+            <p id="userEmailNav" class="text-xs font-medium text-slate-200"></p>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">Terhubung</span>
+          </div>
+          <button id="btnLogout" class="flex items-center space-x-1 bg-red-600/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Keluar</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- AUTHENTICATION SCREEN -->
+    <div id="authScreen" class="flex-1 flex items-center justify-center p-4 bg-slate-900">
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 max-w-md w-full shadow-2xl text-slate-100">
+        <div class="text-center mb-6">
+          <div class="inline-flex bg-indigo-600 p-3 rounded-2xl mb-3 shadow-lg shadow-indigo-500/30">
+            <i data-lucide="line-chart" class="w-8 h-8 text-white"></i>
+          </div>
+          <h2 class="text-2xl font-bold text-white">BIVDA App</h2>
+          <p class="text-xs text-slate-400 mt-1">Sistem Analisis Pengembang Usaha & Catatan Nota</p>
+        </div>
+
+        <div id="authAlert" class="hidden mb-4 p-3 rounded-lg text-xs bg-red-500/20 border border-red-500/40 text-red-300"></div>
+
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Email Pengguna</label>
+            <input type="email" id="loginEmail" required class="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="nama@email.com">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Kata Sandi</label>
+            <input type="password" id="loginPassword" required class="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="••••••••">
+          </div>
+          <button type="submit" id="btnLoginSubmit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2">
+            <span>Masuk ke BIVDA</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main id="dashboardContent" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 hidden space-y-6">
+      
+      <!-- NAVIGATION TABS -->
+      <nav class="flex space-x-2 border-b border-slate-200 pb-2 overflow-x-auto custom-scrollbar">
+        <button data-tab="tab-transaksi" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold flex items-center space-x-2 bg-indigo-600 text-white">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          <span>Transaksi</span>
+        </button>
+        <button data-tab="tab-input-banyak" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold flex items-center space-x-2 text-slate-600 hover:bg-slate-200">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+          <span>Input Banyak Nota</span>
+        </button>
+        <button data-tab="tab-kategori" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold flex items-center space-x-2 text-slate-600 hover:bg-slate-200">
+          <i data-lucide="tags" class="w-4 h-4"></i>
+          <span>Data Kategori</span>
+        </button>
+        <button data-tab="tab-pembeli" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold flex items-center space-x-2 text-slate-600 hover:bg-slate-200">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span>Data Pembeli</span>
+        </button>
+        <button data-tab="tab-analytics" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold flex items-center space-x-2 text-slate-600 hover:bg-slate-200">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          <span>Grafik & Analisis BI</span>
+        </button>
+        <button data-tab="tab-files" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold flex items-center space-x-2 text-slate-600 hover:bg-slate-200">
+          <i data-lucide="folder-open" class="w-4 h-4"></i>
+          <span>File Manager</span>
+        </button>
+      </nav>
+
+      <!-- SECTIONS -->
+      <!-- SECTION 1: SINGLE TRANSACTIONS & HISTORY -->
+      <section id="tab-transaksi" class="tab-content space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- FORM INPUT SINGLE TRANSACTION -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+              <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-600"></i>
+              <span>Tambah Transaksi Nota Baru</span>
+            </h2>
+
+            <form id="singleTxForm" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">1. Tanggal Transaksi</label>
+                <input type="date" id="txDate" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">2. Nama Barang / Produk</label>
+                <input type="text" id="txItemName" required placeholder="Contoh: Kopi Susu Aren" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">3. Kategori</label>
+                <select id="txCategory" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500">
+                  <option value="">-- Pilih Kategori --</option>
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+
+              <div id="txCustomNominalContainer" class="hidden">
+                <label class="block text-xs font-semibold text-amber-700 mb-1">Nominal Kustom (Kategori Lainnya)</label>
+                <input type="number" id="txCustomNominal" min="0" placeholder="0" class="w-full border border-amber-300 bg-amber-50 rounded-lg p-2 text-sm">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">4. Jumlah (Qty)</label>
+                <input type="number" id="txQty" min="1" value="1" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">5. Pembeli</label>
+                <select id="txCustomer" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500">
+                  <option value="Umum / Tanpa Nama">Umum / Tanpa Nama</option>
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">6. Total Biaya (Rp)</label>
+                <input type="text" id="txTotalDisplay" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 text-sm font-bold text-slate-700" value="Rp 0">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">7. Nomor Nota</label>
+                <input type="text" id="txInvoiceNo" required placeholder="NOTA-001" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">8. Unggah File / Gambar (Maks 10 MB/file)</label>
+                <div id="dropZoneSingle" class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-xl p-4 text-center cursor-pointer transition bg-slate-50">
+                  <i data-lucide="upload-cloud" class="w-8 h-8 mx-auto text-slate-400 mb-1"></i>
+                  <p class="text-xs text-slate-600">Klik / Tarik & Geser File Gambar ke Sini</p>
+                  <p class="text-[10px] text-slate-400 mt-1">JPG, PNG, PDF (Maks 10MB per file)</p>
+                  <input type="file" id="txFilesInput" multiple accept="image/*,application/pdf" class="hidden">
+                </div>
+                <div id="txFilesPreview" class="flex flex-wrap gap-2 mt-2"></div>
+              </div>
+
+              <button type="submit" id="btnSaveSingleTx" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm shadow flex items-center justify-center space-x-2">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                <span>Simpan Transaksi Nota</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- LIST & SEARCH HISTORY -->
+          <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                <i data-lucide="history" class="w-5 h-5 text-indigo-600"></i>
+                <span>Riwayat Nota & Transaksi</span>
+              </h2>
+
+              <div class="relative w-full sm:w-64">
+                <input type="text" id="searchTxInput" placeholder="Cari nota, barang, kategori..." class="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-2.5 top-2"></i>
+              </div>
+            </div>
+
+            <!-- TABLE OF TRANSACTIONS -->
+            <div class="overflow-x-auto flex-1 custom-scrollbar">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-600 border-b border-slate-200 font-semibold">
+                    <th class="p-2.5">Tanggal</th>
+                    <th class="p-2.5">Nama Barang / Judul</th>
+                    <th class="p-2.5">Kategori</th>
+                    <th class="p-2.5 text-center">Jumlah</th>
+                    <th class="p-2.5">Pembeli</th>
+                    <th class="p-2.5 text-right">Total (Rp)</th>
+                    <th class="p-2.5">No Nota</th>
+                    <th class="p-2.5 text-center">File/Gambar</th>
+                    <th class="p-2.5 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="txTableBody" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Transaksi dirender di sini -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION 2: INPUT BANYAK NOTA (BATCH ENTRY) -->
+      <section id="tab-input-banyak" class="tab-content hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+          <div class="flex justify-between items-center border-b pb-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">Input Banyak Nota Sekaligus (Batch / Grup)</h2>
+              <p class="text-xs text-slate-500">Masukkan beberapa nota dalam satu grup transaksi yang sama.</p>
+            </div>
+            <button id="btnAddBatchRow" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium px-3 py-1.5 rounded-lg text-xs flex items-center space-x-1 border border-indigo-200">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Tambah Baris Nota</span>
+            </button>
+          </div>
+
+          <div class="max-w-md">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Judul Grup Nota / Operasional *</label>
+            <input type="text" id="batchGroupTitle" placeholder="Contoh: Restok Bahan Baku Minggu ke-3" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500">
+          </div>
+
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-100 text-slate-600 font-semibold border-b">
+                  <th class="p-2 min-w-[120px]">Tanggal</th>
+                  <th class="p-2 min-w-[150px]">Nama Barang</th>
+                  <th class="p-2 min-w-[140px]">Kategori</th>
+                  <th class="p-2 min-w-[70px]">Jumlah</th>
+                  <th class="p-2 min-w-[130px]">Pembeli</th>
+                  <th class="p-2 min-w-[100px]">Total (Rp)</th>
+                  <th class="p-2 min-w-[110px]">No Nota</th>
+                  <th class="p-2 min-w-[150px]">File/Gambar</th>
+                  <th class="p-2 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="batchTableBody" class="divide-y divide-slate-200">
+                <!-- Row template injected by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex justify-end pt-4 border-t">
+            <button id="btnSaveBatch" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm shadow flex items-center space-x-2">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              <span>Simpan Semua Nota Grup Ini</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: DATA KATEGORI -->
+      <section id="tab-kategori" class="tab-content hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+              <i data-lucide="tag" class="w-5 h-5 text-indigo-600"></i>
+              <span>Tambah Data Kategori & Harga</span>
+            </h2>
+
+            <form id="categoryForm" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Kategori</label>
+                <input type="text" id="catName" required placeholder="Contoh: Makanan Berat" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Harga Standard per Unit (Rp)</label>
+                <input type="number" id="catPrice" required min="0" placeholder="15000" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-sm shadow">
+                Simpan Kategori
+              </button>
+            </form>
+          </div>
+
+          <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <h2 class="text-base font-bold text-slate-800">Daftar Kategori Tersedia</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-600 border-b font-semibold">
+                    <th class="p-3">Nama Kategori</th>
+                    <th class="p-3">Harga Unit Standard</th>
+                    <th class="p-3 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="catTableBody" class="divide-y divide-slate-100">
+                  <!-- Categories rendered here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION 4: DATA PEMBELI -->
+      <section id="tab-pembeli" class="tab-content hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+              <i data-lucide="user-plus" class="w-5 h-5 text-indigo-600"></i>
+              <span>Tambah Data Pembeli / Pelanggan</span>
+            </h2>
+
+            <form id="customerForm" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Pembeli * (Wajib)</label>
+                <input type="text" id="custName" required placeholder="Contoh: Bpk. Ahmad" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat (Opsional)</label>
+                <textarea id="custAddress" rows="2" placeholder="Jl. Raya Kebumen No. 12" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500"></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">No. HP / WA (Opsional)</label>
+                <input type="text" id="custPhone" placeholder="08123456789" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-sm shadow">
+                Simpan Pembeli
+              </button>
+            </form>
+          </div>
+
+          <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <h2 class="text-base font-bold text-slate-800">Daftar Pembeli Terdaftar</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-600 border-b font-semibold">
+                    <th class="p-3">Nama Pembeli</th>
+                    <th class="p-3">Alamat</th>
+                    <th class="p-3">No. HP</th>
+                    <th class="p-3 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="custTableBody" class="divide-y divide-slate-100">
+                  <!-- Customers rendered here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION 5: ANALYTICS & CHARTS -->
+      <section id="tab-analytics" class="tab-content hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">Visualisasi Business Intelligence (BI)</h2>
+              <p class="text-xs text-slate-500">Analisis tren omset penjualan usaha Anda berdasarkan periode.</p>
+            </div>
+
+            <div class="flex space-x-2 bg-slate-100 p-1 rounded-lg">
+              <button data-period="daily" class="chart-period-btn px-3 py-1.5 rounded-md text-xs font-semibold bg-white text-indigo-600 shadow-sm">Harian</button>
+              <button data-period="monthly" class="chart-period-btn px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-800">Bulanan</button>
+              <button data-period="quarterly" class="chart-period-btn px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-800">Quartal</button>
+              <button data-period="yearly" class="chart-period-btn px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-800">Tahunan</button>
+            </div>
+          </div>
+
+          <div class="h-80 w-full relative">
+            <canvas id="biChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 6: FILE MANAGER -->
+      <section id="tab-files" class="tab-content hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+          <h2 class="text-lg font-bold text-slate-800 flex items-center space-x-2">
+            <i data-lucide="folder" class="w-5 h-5 text-indigo-600"></i>
+            <span>File Manager Galeri Nota & Dokumen</span>
+          </h2>
+          <p class="text-xs text-slate-500">Semua berkas bukti transaksi yang diunggah ke Cloudinary tersusun di sini.</p>
+
+          <div id="fileManagerGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pt-4">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODALS CONTAINER -->
+  <!-- MODAL DETAIL TRANSAKSI (DIPERBESAR) -->
+  <div id="txDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-4">
+        <div>
+          <h3 id="modalTxTitle" class="text-xl font-bold text-slate-800">Detail Transaksi Nota</h3>
+          <p id="modalTxGroupSubtitle" class="text-xs text-slate-500"></p>
+        </div>
+        <button id="btnCloseDetailModal" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <div id="modalTxBody" class="space-y-4 text-sm">
+        <!-- Content injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGICAL CODE -->
+  <script>
+    // CONFIGURATION & GLOBAL STATES
+    const CLOUDINARY_CLOUD_NAME = "dcjdq3sxq";
+    const CLOUDINARY_UPLOAD_PRESET = "tetstist";
+
+    let dbCategories = [
+      { id: '1', name: 'Makanan', price: 15000 },
+      { id: '2', name: 'Minuman', price: 8000 }
+    ];
+
+    let dbCustomers = [
+      { id: '1', name: 'Bpk. Hendra', address: 'Jl. Merdeka No. 45', phone: '081299887766' }
+    ];
+
+    let dbTransactions = [];
+    let currentUser = null;
+    let currentChart = null;
+    let currentChartPeriod = 'daily';
+
+    // INITIALIZATION
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      initAppEvents();
+      checkPersistedLogin();
+    });
+
+    // AUTH SIMULATION & PERSISTENCE
+    function checkPersistedLogin() {
+      const savedUser = localStorage.getItem('bivda_user');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        showMainApp();
+      } else {
+        showLoginScreen();
+      }
+    }
+
+    function showLoginScreen() {
+      document.getElementById('authScreen').classList.remove('hidden');
+      document.getElementById('mainHeader').classList.add('hidden');
+      document.getElementById('dashboardContent').classList.add('hidden');
+    }
+
+    function showMainApp() {
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('mainHeader').classList.remove('hidden');
+      document.getElementById('dashboardContent').classList.remove('hidden');
+      document.getElementById('userEmailNav').textContent = currentUser.email;
+
+      loadDataFromStorage();
+      renderCategories();
+      renderCustomers();
+      renderTransactions();
+      renderFileManager();
+      renderChart();
+    }
+
+    // LOCAL STORAGE PERSISTENCE
+    function loadDataFromStorage() {
+      const cats = localStorage.getItem('bivda_categories');
+      if (cats) dbCategories = JSON.parse(cats);
+      
+      const custs = localStorage.getItem('bivda_customers');
+      if (custs) dbCustomers = JSON.parse(custs);
+
+      const txs = localStorage.getItem('bivda_transactions');
+      if (txs) dbTransactions = JSON.parse(txs);
+    }
+
+    function saveDataToStorage() {
+      localStorage.setItem('bivda_categories', JSON.stringify(dbCategories));
+      localStorage.setItem('bivda_customers', JSON.stringify(dbCustomers));
+      localStorage.setItem('bivda_transactions', JSON.stringify(dbTransactions));
+    }
+
+    // EVENTS BINDING
+    function initAppEvents() {
+      // Login Form
+      document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        currentUser = { email: email, uid: 'user_' + Date.now() };
+        localStorage.setItem('bivda_user', JSON.stringify(currentUser));
+        showMainApp();
+      });
+
+      // Logout Button
+      document.getElementById('btnLogout').addEventListener('click', () => {
+        if (confirm('Apakah Anda yakin ingin keluar?')) {
+          localStorage.removeItem('bivda_user');
+          showLoginScreen();
+        }
+      });
+
+      // Tab Navigation
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('bg-indigo-600', 'text-white');
+            b.classList.add('text-slate-600', 'hover:bg-slate-200');
+          });
+          btn.classList.add('bg-indigo-600', 'text-white');
+          btn.classList.remove('text-slate-600', 'hover:bg-slate-200');
+
+          const targetTab = btn.getAttribute('data-tab');
+          document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+          document.getElementById(targetTab).classList.remove('hidden');
+
+          if (targetTab === 'tab-analytics') renderChart();
+          if (targetTab === 'tab-files') renderFileManager();
+        });
+      });
+
+      // Category Auto Price & Custom Nominal Toggle
+      document.getElementById('txCategory').addEventListener('change', (e) => {
+        const val = e.target.value;
+        const customContainer = document.getElementById('txCustomNominalContainer');
+        if (val === 'Lainnya') {
+          customContainer.classList.remove('hidden');
+        } else {
+          customContainer.classList.add('hidden');
+        }
+        updateSingleTotalDisplay();
+      });
+
+      document.getElementById('txQty').addEventListener('input', updateSingleTotalDisplay);
+      document.getElementById('txCustomNominal').addEventListener('input', updateSingleTotalDisplay);
+
+      // Single File Upload Preview & Drag-Drop
+      const dropZone = document.getElementById('dropZoneSingle');
+      const fileInput = document.getElementById('txFilesInput');
+
+      dropZone.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', handleSingleFilesSelect);
+
+      // Drag and Drop events
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-indigo-500', 'bg-indigo-50/50');
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+        if (e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files;
+          handleSingleFilesSelect({ target: fileInput });
+        }
+      });
+
+      // Single Form Submit
+      document.getElementById('singleTxForm').addEventListener('submit', handleSaveSingleTx);
+
+      // Batch Row Add
+      document.getElementById('btnAddBatchRow').addEventListener('click', addBatchRow);
+      document.getElementById('btnSaveBatch').addEventListener('click', handleSaveBatch);
+
+      // Category & Customer Form Submits
+      document.getElementById('categoryForm').addEventListener('submit', handleSaveCategory);
+      document.getElementById('customerForm').addEventListener('submit', handleSaveCustomer);
+
+      // Search Filter
+      document.getElementById('searchTxInput').addEventListener('input', (e) => {
+        renderTransactions(e.target.value.toLowerCase());
+      });
+
+      // Chart Period Switching
+      document.querySelectorAll('.chart-period-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.chart-period-btn').forEach(b => {
+            b.classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
+            b.classList.add('text-slate-600');
+          });
+          btn.classList.add('bg-white', 'text-indigo-600', 'shadow-sm');
+          btn.classList.remove('text-slate-600');
+          currentChartPeriod = btn.getAttribute('data-period');
+          renderChart();
+        });
+      });
+
+      // Close Modal
+      document.getElementById('btnCloseDetailModal').addEventListener('click', () => {
+        document.getElementById('txDetailModal').classList.add('hidden');
+      });
+
+      // Initial Batch Table Row
+      addBatchRow();
+    }
+
+    // CALCULATE SINGLE FORM TOTAL
+    function updateSingleTotalDisplay() {
+      const catVal = document.getElementById('txCategory').value;
+      const qty = parseInt(document.getElementById('txQty').value) || 1;
+      let unitPrice = 0;
+
+      if (catVal === 'Lainnya') {
+        unitPrice = parseFloat(document.getElementById('txCustomNominal').value) || 0;
+      } else if (catVal) {
+        const foundCat = dbCategories.find(c => c.name === catVal);
+        if (foundCat) unitPrice = foundCat.price;
+      }
+
+      const total = unitPrice * qty;
+      document.getElementById('txTotalDisplay').value = `Rp ${total.toLocaleString('id-ID')}`;
+    }
+
+    // RENDER CATEGORIES DROPDOWN & TABLES
+    function renderCategories() {
+      const select = document.getElementById('txCategory');
+      select.innerHTML = '<option value="">-- Pilih Kategori --</option>';
+      dbCategories.forEach(cat => {
+        select.innerHTML += `<option value="${cat.name}">${cat.name} (Rp ${cat.price.toLocaleString('id-ID')})</option>`;
+      });
+      select.innerHTML += '<option value="Lainnya">Lainnya (Nominal Manual)</option>';
+
+      const tbody = document.getElementById('catTableBody');
+      tbody.innerHTML = '';
+      dbCategories.forEach((cat) => {
+        tbody.innerHTML += `
+          <tr>
+            <td class="p-3 font-medium">${cat.name}</td>
+            <td class="p-3">Rp ${cat.price.toLocaleString('id-ID')}</td>
+            <td class="p-3 text-center">
+              <button onclick="deleteCategory('${cat.id}')" class="text-red-500 hover:text-red-700">
+                <i data-lucide="trash-2" class="w-4 h-4 inline"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+      lucide.createIcons();
+    }
+
+    function handleSaveCategory(e) {
+      e.preventDefault();
+      const name = document.getElementById('catName').value;
+      const price = parseFloat(document.getElementById('catPrice').value);
+
+      dbCategories.push({ id: Date.now().toString(), name, price });
+      saveDataToStorage();
+      renderCategories();
+      document.getElementById('categoryForm').reset();
+      alert('Kategori berhasil disimpan!');
+    }
+
+    function deleteCategory(id) {
+      if (confirm('Konfirmasi hapus kategori ini?')) {
+        dbCategories = dbCategories.filter(c => c.id !== id);
+        saveDataToStorage();
+        renderCategories();
+      }
+    }
+
+    // RENDER CUSTOMERS
+    function renderCustomers() {
+      const select = document.getElementById('txCustomer');
+      select.innerHTML = '<option value="Umum / Tanpa Nama">Umum / Tanpa Nama</option>';
+      dbCustomers.forEach(cust => {
+        select.innerHTML += `<option value="${cust.name}">${cust.name}</option>`;
+      });
+
+      const tbody = document.getElementById('custTableBody');
+      tbody.innerHTML = '';
+      dbCustomers.forEach((cust) => {
+        tbody.innerHTML += `
+          <tr>
+            <td class="p-3 font-medium">${cust.name}</td>
+            <td class="p-3 text-slate-500">${cust.address || '-'}</td>
+            <td class="p-3 text-slate-500">${cust.phone || '-'}</td>
+            <td class="p-3 text-center">
+              <button onclick="deleteCustomer('${cust.id}')" class="text-red-500 hover:text-red-700">
+                <i data-lucide="trash-2" class="w-4 h-4 inline"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+      lucide.createIcons();
+    }
+
+    function handleSaveCustomer(e) {
+      e.preventDefault();
+      const name = document.getElementById('custName').value;
+      const address = document.getElementById('custAddress').value;
+      const phone = document.getElementById('custPhone').value;
+
+      dbCustomers.push({ id: Date.now().toString(), name, address, phone });
+      saveDataToStorage();
+      renderCustomers();
+      document.getElementById('customerForm').reset();
+      alert('Data pembeli berhasil disimpan!');
+    }
+
+    function deleteCustomer(id) {
+      if (confirm('Konfirmasi hapus data pembeli ini?')) {
+        dbCustomers = dbCustomers.filter(c => c.id !== id);
+        saveDataToStorage();
+        renderCustomers();
+      }
+    }
+
+    // CLOUDINARY MULTI-FILE UPLOAD LOGIC
+    let selectedSingleFiles = [];
+
+    function handleSingleFilesSelect(e) {
+      const files = Array.from(e.target.files);
+      const container = document.getElementById('txFilesPreview');
+      container.innerHTML = '';
+      selectedSingleFiles = [];
+
+      files.forEach(file => {
+        if (file.size > 10 * 1024 * 1024) {
+          alert(`File ${file.name} melebihi batas 10MB!`);
+          return;
+        }
+        selectedSingleFiles.push(file);
+
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.className = 'w-12 h-12 object-cover rounded-lg border border-slate-300';
+        container.appendChild(img);
+      });
+    }
+
+    async function uploadFileToCloudinary(file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) throw new Error('Gagal unggah berkas ke Cloudinary');
+      const data = await res.json();
+      return data.secure_url;
+    }
+
+    // SINGLE TRANSACTION SAVE
+    async function handleSaveSingleTx(e) {
+      e.preventDefault();
+      
+      if (!confirm('Apakah Anda yakin ingin menyimpan nota transaksi ini?')) return;
+
+      const btn = document.getElementById('btnSaveSingleTx');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Mengunggah File & Menyimpan...</span>';
+
+      try {
+        const uploadedUrls = [];
+        for (const file of selectedSingleFiles) {
+          const url = await uploadFileToCloudinary(file);
+          uploadedUrls.push(url);
+        }
+
+        const catVal = document.getElementById('txCategory').value;
+        const qty = parseInt(document.getElementById('txQty').value) || 1;
+        let unitPrice = 0;
+
+        if (catVal === 'Lainnya') {
+          unitPrice = parseFloat(document.getElementById('txCustomNominal').value) || 0;
+        } else {
+          const found = dbCategories.find(c => c.name === catVal);
+          if (found) unitPrice = found.price;
+        }
+
+        const txRecord = {
+          id: 'tx_' + Date.now(),
+          date: document.getElementById('txDate').value,
+          itemName: document.getElementById('txItemName').value,
+          category: catVal,
+          qty: qty,
+          customer: document.getElementById('txCustomer').value,
+          total: unitPrice * qty,
+          invoiceNo: document.getElementById('txInvoiceNo').value,
+          files: uploadedUrls,
+          isGroup: false
+        };
+
+        dbTransactions.unshift(txRecord);
+        saveDataToStorage();
+        renderTransactions();
+        document.getElementById('singleTxForm').reset();
+        document.getElementById('txFilesPreview').innerHTML = '';
+        selectedSingleFiles = [];
+        updateSingleTotalDisplay();
+        alert('Transaksi nota berhasil disimpan!');
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i><span>Simpan Transaksi Nota</span>';
+        lucide.createIcons();
+      }
+    }
+
+    // BATCH ROW MANAGEMENT
+    function addBatchRow() {
+      const tbody = document.getElementById('batchTableBody');
+      const rowId = Date.now() + Math.random().toString(36).substr(2, 4);
+
+      let categoryOptions = '<option value="">-- Pilih --</option>';
+      dbCategories.forEach(c => categoryOptions += `<option value="${c.name}">${c.name}</option>`);
+      categoryOptions += '<option value="Lainnya">Lainnya</option>';
+
+      let customerOptions = '<option value="Umum / Tanpa Nama">Umum</option>';
+      dbCustomers.forEach(c => customerOptions += `<option value="${c.name}">${c.name}</option>`);
+
+      const tr = document.createElement('tr');
+      tr.id = `batchRow_${rowId}`;
+      tr.className = 'border-b hover:bg-slate-50';
+      tr.innerHTML = `
+        <td class="p-2"><input type="date" class="b-date w-full border rounded p-1 text-xs" required></td>
+        <td class="p-2"><input type="text" placeholder="Nama Barang" class="b-name w-full border rounded p-1 text-xs" required></td>
+        <td class="p-2">
+          <select class="b-cat w-full border rounded p-1 text-xs">${categoryOptions}</select>
+        </td>
+        <td class="p-2"><input type="number" value="1" min="1" class="b-qty w-full border rounded p-1 text-xs"></td>
+        <td class="p-2"><select class="b-cust w-full border rounded p-1 text-xs">${customerOptions}</select></td>
+        <td class="p-2"><input type="number" placeholder="Total (Rp)" class="b-total w-full border rounded p-1 text-xs font-bold"></td>
+        <td class="p-2"><input type="text" placeholder="No Nota" class="b-inv w-full border rounded p-1 text-xs"></td>
+        <td class="p-2"><input type="file" multiple accept="image/*" class="b-file w-full text-[10px]"></td>
+        <td class="p-2 text-center">
+          <button onclick="document.getElementById('batchRow_${rowId}').remove()" class="text-red-500"><i data-lucide="trash" class="w-4 h-4"></i></button>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+      lucide.createIcons();
+    }
+
+    async function handleSaveBatch() {
+      const title = document.getElementById('batchGroupTitle').value.trim();
+      if (!title) {
+        alert('Harap isi Judul Grup Nota terlebih dahulu!');
+        return;
+      }
+
+      const rows = document.querySelectorAll('#batchTableBody tr');
+      if (rows.length === 0) {
+        alert('Minimal buat 1 baris transaksi!');
+        return;
+      }
+
+      if (!confirm(`Simpan ${rows.length} nota ke dalam grup "${title}"?`)) return;
+
+      const btn = document.getElementById('btnSaveBatch');
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan Batch...';
+
+      try {
+        const items = [];
+        let groupTotal = 0;
+
+        for (const row of rows) {
+          const date = row.querySelector('.b-date').value;
+          const name = row.querySelector('.b-name').value;
+          const cat = row.querySelector('.b-cat').value;
+          const qty = parseInt(row.querySelector('.b-qty').value) || 1;
+          const cust = row.querySelector('.b-cust').value;
+          const total = parseFloat(row.querySelector('.b-total').value) || 0;
+          const inv = row.querySelector('.b-inv').value;
+          const fileInput = row.querySelector('.b-file');
+
+          const uploadedUrls = [];
+          if (fileInput.files.length > 0) {
+            for (const file of Array.from(fileInput.files)) {
+              if (file.size <= 10 * 1024 * 1024) {
+                const url = await uploadFileToCloudinary(file);
+                uploadedUrls.push(url);
+              }
+            }
+          }
+
+          items.push({
+            date,
+            itemName: name,
+            category: cat,
+            qty,
+            customer: cust,
+            total,
+            invoiceNo: inv,
+            files: uploadedUrls
+          });
+
+          groupTotal += total;
+        }
+
+        const groupRecord = {
+          id: 'grp_' + Date.now(),
+          isGroup: true,
+          title: title,
+          total: groupTotal,
+          date: items[0]?.date || new Date().toISOString().split('T')[0],
+          items: items
+        };
+
+        dbTransactions.unshift(groupRecord);
+        saveDataToStorage();
+        renderTransactions();
+
+        document.getElementById('batchGroupTitle').value = '';
+        document.getElementById('batchTableBody').innerHTML = '';
+        addBatchRow();
+        alert('Seluruh nota grup berhasil disimpan!');
+      } catch (err) {
+        alert('Gagal menyimpan grup: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i><span>Simpan Semua Nota Grup Ini</span>';
+        lucide.createIcons();
+      }
+    }
+
+    // RENDER TRANSACTIONS TABLE
+    function renderTransactions(filterText = '') {
+      const tbody = document.getElementById('txTableBody');
+      tbody.innerHTML = '';
+
+      const filtered = dbTransactions.filter(t => {
+        if (!filterText) return true;
+        if (t.isGroup) {
+          return t.title.toLowerCase().includes(filterText) || t.items.some(i => i.itemName.toLowerCase().includes(filterText));
+        }
+        return t.itemName.toLowerCase().includes(filterText) || t.invoiceNo.toLowerCase().includes(filterText) || t.category.toLowerCase().includes(filterText);
+      });
+
+      filtered.forEach(t => {
+        if (t.isGroup) {
+          // ORDER: Tanggal, Nama Barang / Judul, Kategori, Jumlah, Pembeli, Total, No Nota, File/Gambar, Aksi
+          tbody.innerHTML += `
+            <tr class="bg-indigo-50/50 hover:bg-indigo-50 font-semibold text-indigo-900 border-b">
+              <td class="p-2.5">${t.date}</td>
+              <td class="p-2.5 flex items-center space-x-1.5">
+                <span class="bg-indigo-600 text-white text-[10px] px-1.5 py-0.5 rounded">GRUP</span>
+                <span>${t.title}</span>
+              </td>
+              <td class="p-2.5 text-slate-500">${t.items.length} Nota</td>
+              <td class="p-2.5 text-center">-</td>
+              <td class="p-2.5 text-slate-500">Beragam</td>
+              <td class="p-2.5 text-right font-bold text-indigo-700">Rp ${t.total.toLocaleString('id-ID')}</td>
+              <td class="p-2.5 text-slate-500">-</td>
+              <td class="p-2.5 text-center text-xs text-slate-500">${t.items.reduce((acc, cur) => acc + (cur.files?.length || 0), 0)} Berkas</td>
+              <td class="p-2.5 text-center space-x-1">
+                <button onclick="viewDetail('${t.id}')" class="text-indigo-600 hover:text-indigo-800"><i data-lucide="eye" class="w-4 h-4 inline"></i></button>
+                <button onclick="deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
+              </td>
+            </tr>
+          `;
+        } else {
+          tbody.innerHTML += `
+            <tr class="hover:bg-slate-50 border-b">
+              <td class="p-2.5">${t.date}</td>
+              <td class="p-2.5 font-medium text-slate-800">${t.itemName}</td>
+              <td class="p-2.5"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[11px]">${t.category}</span></td>
+              <td class="p-2.5 text-center">${t.qty}</td>
+              <td class="p-2.5 text-slate-600">${t.customer || 'Umum'}</td>
+              <td class="p-2.5 text-right font-semibold">Rp ${t.total.toLocaleString('id-ID')}</td>
+              <td class="p-2.5 font-mono text-slate-500">${t.invoiceNo}</td>
+              <td class="p-2.5 text-center">
+                ${t.files && t.files.length ? `<a href="${t.files[0]}" target="_blank" class="text-indigo-600 underline">${t.files.length} File</a>` : '-'}
+              </td>
+              <td class="p-2.5 text-center space-x-1">
+                <button onclick="viewDetail('${t.id}')" class="text-indigo-600 hover:text-indigo-800"><i data-lucide="eye" class="w-4 h-4 inline"></i></button>
+                <button onclick="deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
+              </td>
+            </tr>
+          `;
+        }
+      });
+
+      lucide.createIcons();
+    }
+
+    function viewDetail(id) {
+      const item = dbTransactions.find(t => t.id === id);
+      if (!item) return;
+
+      const modal = document.getElementById('txDetailModal');
+      const body = document.getElementById('modalTxBody');
+
+      if (item.isGroup) {
+        document.getElementById('modalTxTitle').textContent = `Grup: ${item.title}`;
+        document.getElementById('modalTxGroupSubtitle').textContent = `Total Biaya: Rp ${item.total.toLocaleString('id-ID')} | ${item.items.length} Nota`;
+
+        let html = '<div class="space-y-4">';
+        item.items.forEach((sub, idx) => {
+          html += `
+            <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-2">
+              <div class="flex justify-between font-bold border-b pb-2">
+                <span>#${idx + 1} ${sub.itemName}</span>
+                <span class="text-indigo-600">Rp ${sub.total.toLocaleString('id-ID')}</span>
+              </div>
+              <div class="grid grid-cols-2 text-xs text-slate-600 gap-1">
+                <p><strong>Tanggal:</strong> ${sub.date}</p>
+                <p><strong>No Nota:</strong> ${sub.invoiceNo || '-'}</p>
+                <p><strong>Kategori:</strong> ${sub.category}</p>
+                <p><strong>Pembeli:</strong> ${sub.customer}</p>
+              </div>
+              ${sub.files && sub.files.length ? `
+                <div class="flex gap-2 pt-2">
+                  ${sub.files.map(f => `<a href="${f}" target="_blank"><img src="${f}" class="w-16 h-16 object-cover rounded border"></a>`).join('')}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        });
+        html += '</div>';
+        body.innerHTML = html;
+      } else {
+        document.getElementById('modalTxTitle').textContent = item.itemName;
+        document.getElementById('modalTxGroupSubtitle').textContent = `No Nota: ${item.invoiceNo}`;
+
+        body.innerHTML = `
+          <div class="grid grid-cols-2 gap-4 text-sm bg-slate-50 p-4 rounded-xl border">
+            <p><strong>Tanggal:</strong> ${item.date}</p>
+            <p><strong>Kategori:</strong> ${item.category}</p>
+            <p><strong>Jumlah (Qty):</strong> ${item.qty}</p>
+            <p><strong>Pembeli:</strong> ${item.customer}</p>
+            <p class="col-span-2 text-lg font-bold text-indigo-600">Total: Rp ${item.total.toLocaleString('id-ID')}</p>
+          </div>
+          ${item.files && item.files.length ? `
+            <div>
+              <h4 class="font-bold text-xs mb-2">Berkas / Lampiran Nota:</h4>
+              <div class="flex flex-wrap gap-3">
+                ${item.files.map(f => `<a href="${f}" target="_blank"><img src="${f}" class="w-28 h-28 object-cover rounded-xl border shadow-sm"></a>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+        `;
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function deleteTransaction(id) {
+      if (confirm('Apakah Anda yakin ingin menghapus catatan transaksi ini secara permanen?')) {
+        dbTransactions = dbTransactions.filter(t => t.id !== id);
+        saveDataToStorage();
+        renderTransactions();
+      }
+    }
+
+    // RENDER FILE MANAGER
+    function renderFileManager() {
+      const grid = document.getElementById('fileManagerGrid');
+      grid.innerHTML = '';
+
+      const allFiles = [];
+      dbTransactions.forEach(t => {
+        if (t.isGroup) {
+          t.items.forEach(i => {
+            if (i.files) i.files.forEach(f => allFiles.push({ url: f, name: i.itemName, date: i.date }));
+          });
+        } else {
+          if (t.files) t.files.forEach(f => allFiles.push({ url: f, name: t.itemName, date: t.date }));
+        }
+      });
+
+      if (allFiles.length === 0) {
+        grid.innerHTML = '<p class="col-span-full text-xs text-slate-400 italic text-center py-8">Belum ada file/gambar nota yang diunggah.</p>';
+        return;
+      }
+
+      allFiles.forEach(file => {
+        grid.innerHTML += `
+          <div class="border rounded-xl p-2 bg-slate-50 hover:shadow-md transition">
+            <a href="${file.url}" target="_blank">
+              <img src="${file.url}" class="w-full h-24 object-cover rounded-lg mb-2">
+            </a>
+            <p class="text-[11px] font-bold truncate">${file.name}</p>
+            <p class="text-[9px] text-slate-400">${file.date}</p>
+          </div>
+        `;
+      });
+    }
+
+    // RENDER ANALYTICS CHART
+    function renderChart() {
+      const ctx = document.getElementById('biChart').getContext('2d');
+      if (currentChart) currentChart.destroy();
+
+      const labels = [];
+      const totals = [];
+
+      // Aggregation logic
+      const groupData = {};
+      dbTransactions.forEach(t => {
+        const val = t.total || 0;
+        const dateKey = t.date || 'Undated';
+
+        if (!groupData[dateKey]) groupData[dateKey] = 0;
+        groupData[dateKey] += val;
+      });
+
+      Object.keys(groupData).sort().forEach(k => {
+        labels.push(k);
+        totals.push(groupData[k]);
+      });
+
+      currentChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels.length ? labels : ['Belum ada data'],
+          datasets: [{
+            label: 'Total Penjualan (Rp)',
+            data: totals.length ? totals : [0],
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
