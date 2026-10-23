@@ -14,29 +14,32 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <style>
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f5f9;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
-  </style>
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen font-sans flex flex-col antialiased selection:bg-indigo-600 selection:text-white">
+
+  <section id="fileProtocolWarning" class="hidden min-h-screen p-6 flex items-center justify-center bg-slate-100">
+    <div class="max-w-xl rounded-3xl bg-white p-8 shadow-lg border border-slate-200">
+      <h1 class="text-xl font-black text-slate-900">Buka BIVDA melalui server lokal</h1>
+      <p class="mt-3 text-sm text-slate-600">Browser membatasi file JavaScript yang dipisah jika index.html dibuka langsung dari folder.</p>
+      <ol class="mt-4 list-decimal pl-5 text-sm text-slate-700 space-y-2">
+        <li>Jalankan <strong>start-app.cmd</strong> di folder BIVDA.</li>
+        <li>Biarkan jendela server terbuka.</li>
+        <li>Buka <strong>http://localhost:5173</strong> di browser.</li>
+      </ol>
+      <p class="mt-4 text-xs text-slate-500">Untuk perangkat lain, aplikasi harus diterbitkan melalui Firebase Hosting. Lihat README.md.</p>
+    </div>
+  </section>
+  <script>
+    if (window.location.protocol === 'file:') {
+      document.getElementById('fileProtocolWarning').classList.remove('hidden');
+    }
+  </script>
 
   <!-- APP CONTAINER -->
   <div id="app" class="flex-1 flex flex-col">
     
-    <!-- NAVBAR / HEADER (Light Clean Mode) -->
+    <!-- NAVBAR / HEADER -->
     <header id="mainHeader" class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 hidden shadow-sm">
       <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <div class="flex items-center space-x-3 sm:space-x-4">
@@ -57,8 +60,8 @@
         <div class="flex items-center space-x-2 sm:space-x-4">
           <div class="text-right hidden sm:block bg-slate-50 border border-slate-200 px-4 py-2 rounded-2xl">
             <p id="userEmailNav" class="text-xs font-semibold text-slate-700"></p>
-            <span class="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-200 font-medium flex items-center justify-end gap-1 mt-0.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Sinkron Cloud Aktif
+            <span id="syncStatus" role="status" class="text-[10px] bg-emerald-50 text-amber-600 px-2 py-0.5 rounded-full border border-slate-200 font-medium flex items-center justify-end gap-1 mt-0.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span> Menghubungkan ke Cloud…
             </span>
           </div>
           <button id="btnLogout" class="flex items-center space-x-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-semibold transition">
@@ -91,30 +94,37 @@
     <!-- AUTHENTICATION SCREEN -->
     <div id="authScreen" class="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-indigo-50 to-slate-200">
       <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 max-w-md w-full shadow-xl text-slate-800">
-        <div class="text-center mb-8">
-          <div class="inline-flex bg-indigo-600 p-4 rounded-3xl mb-4 shadow-lg shadow-indigo-600/30">
+        <div class="text-center mb-6">
+          <div class="inline-flex bg-indigo-600 p-4 rounded-3xl mb-3 shadow-lg shadow-indigo-600/30">
             <i data-lucide="line-chart" class="w-8 h-8 sm:w-9 sm:h-9 text-white"></i>
           </div>
-          <h2 class="text-2xl font-black text-slate-900">BIVDA App</h2>
-          <p class="text-xs text-slate-500 mt-1">Platform Analisis Bisnis & Manajemen Nota Terpadu</p>
+          <h2 id="authTitleText" class="text-2xl font-black text-slate-900">Masuk ke BIVDA</h2>
+          <p id="authSubtitleText" class="text-xs text-slate-500 mt-1">Platform Analisis Bisnis & Manajemen Nota Terpadu</p>
         </div>
 
         <div id="authAlert" class="hidden mb-4 p-3 rounded-xl text-xs bg-red-50 border border-red-200 text-red-600"></div>
 
-        <form id="loginForm" class="space-y-4">
+        <form id="authForm" class="space-y-4">
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1.5">Email Pengguna</label>
-            <input type="email" id="loginEmail" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition" placeholder="nama@email.com">
+            <input type="email" id="authEmail" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition" placeholder="nama@email.com">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1.5">Kata Sandi</label>
-            <input type="password" id="loginPassword" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition" placeholder="••••••••">
+            <input type="password" id="authPassword" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition" placeholder="••••••••">
           </div>
-          <button type="submit" id="btnLoginSubmit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2 mt-2">
-            <span>Masuk ke BIVDA</span>
+          <button type="submit" id="btnAuthSubmit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2 mt-2">
+            <span id="authBtnLabel">Masuk</span>
             <i data-lucide="arrow-right" class="w-4 h-4"></i>
           </button>
         </form>
+
+        <div class="mt-6 text-center border-t border-slate-100 pt-4">
+          <p id="authTogglePrompt" class="text-xs text-slate-500">
+            Belum punya akun? 
+            <button id="btnToggleAuthMode" class="text-indigo-600 font-bold hover:underline ml-1">Daftar Sekarang</button>
+          </p>
+        </div>
       </div>
     </div>
 
@@ -138,6 +148,10 @@
         <button data-tab="tab-pembeli" class="tab-btn px-5 py-2.5 rounded-2xl text-sm font-semibold flex items-center space-x-2.5 text-slate-600 hover:bg-slate-200/60 transition">
           <i data-lucide="users" class="w-4 h-4"></i>
           <span>Data Pembeli</span>
+        </button>
+        <button data-tab="tab-kerugian" class="tab-btn px-5 py-2.5 rounded-2xl text-sm font-semibold flex items-center space-x-2.5 text-slate-600 hover:bg-slate-200/60 transition">
+          <i data-lucide="trending-down" class="w-4 h-4"></i>
+          <span>Kerugian</span>
         </button>
         <button data-tab="tab-analytics" class="tab-btn px-5 py-2.5 rounded-2xl text-sm font-semibold flex items-center space-x-2.5 text-slate-600 hover:bg-slate-200/60 transition">
           <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
@@ -333,8 +347,9 @@
                 <input type="number" id="catPrice" required min="0" placeholder="15000" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-600 transition">
               </div>
               <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm shadow-md shadow-indigo-600/20 transition">
-                Simpan Kategori
+                <span id="categorySubmitLabel">Simpan Kategori</span>
               </button>
+              <button type="button" id="cancelCategoryEdit" class="hidden w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-xl text-sm transition">Batal Mengubah</button>
             </form>
           </div>
 
@@ -383,8 +398,9 @@
                 <input type="text" id="custPhone" placeholder="08123456789" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-600 transition">
               </div>
               <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm shadow-md shadow-indigo-600/20 transition">
-                Simpan Pembeli
+                <span id="customerSubmitLabel">Simpan Pembeli</span>
               </button>
+              <button type="button" id="cancelCustomerEdit" class="hidden w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-xl text-sm transition">Batal Mengubah</button>
             </form>
           </div>
 
@@ -410,24 +426,86 @@
         </div>
       </section>
 
-      <!-- SECTION 5: ANALYTICS & CHARTS -->
+      <!-- SECTION 5: KERUGIAN -->
+      <section id="tab-kerugian" class="tab-content hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          
+          <div class="bg-white p-5 sm:p-8 rounded-3xl shadow-sm border border-slate-200 space-y-5">
+            <h2 class="text-base font-bold text-slate-900 flex items-center space-x-2.5">
+              <i data-lucide="trending-down" class="w-5 h-5 text-red-600"></i>
+              <span>Catat Data Kerugian</span>
+            </h2>
+
+            <form id="lossForm" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Judul (Opsional)</label>
+                <input type="text" id="lossTitle" placeholder="Contoh: Barang Rusak / Pecah" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-600 transition">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nominal (Rp) * (Wajib Diisi)</label>
+                <input type="number" id="lossNominal" required min="0" placeholder="50000" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-600 transition">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Keterangan (Opsional)</label>
+                <textarea id="lossDesc" rows="3" placeholder="Catatan detail kerugian..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-600 transition"></textarea>
+              </div>
+              <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl text-sm shadow-md shadow-red-600/20 transition">
+                Simpan Kerugian
+              </button>
+            </form>
+          </div>
+
+          <div class="md:col-span-2 bg-white p-5 sm:p-8 rounded-3xl shadow-sm border border-slate-200 space-y-5">
+            <h2 class="text-base font-bold text-slate-900">Riwayat Data Kerugian</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-600 border-b border-slate-200 font-bold uppercase tracking-wider">
+                    <th class="p-3.5">Judul</th>
+                    <th class="p-3.5 text-right">Nominal (Rp)</th>
+                    <th class="p-3.5">Keterangan</th>
+                    <th class="p-3.5 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="lossTableBody" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Loss records rendered here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION 6: ANALYTICS & CHARTS -->
       <section id="tab-analytics" class="tab-content hidden space-y-6">
         <div class="bg-white p-5 sm:p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6">
           <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div>
               <h2 class="text-lg font-bold text-slate-900">Visualisasi Business Intelligence (BI)</h2>
-              <p class="text-xs text-slate-500">Analisis tren omset penjualan. Gunakan kursor untuk **geser (drag/pan)** dan **scroll mouse (zoom)** pada grafik.</p>
+              <p class="text-xs text-slate-500">Pilih analisis gabungan, keuntungan, atau kerugian. Pada mode kerugian, garis naik mengikuti besarnya kerugian dan nilainya tetap ditandai minus merah.</p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex flex-wrap items-end gap-3">
               <button id="btnResetZoom" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-300 transition">
                 Reset Zoom
               </button>
-              <div class="flex space-x-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
-                <button data-period="daily" class="chart-period-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm transition">Harian</button>
-                <button data-period="monthly" class="chart-period-btn px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Bulanan</button>
-                <button data-period="quarterly" class="chart-period-btn px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Quartal</button>
-                <button data-period="yearly" class="chart-period-btn px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Tahunan</button>
+              <div class="space-y-1">
+                <span class="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Jenis analisis</span>
+                <div class="flex flex-wrap gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                  <button type="button" data-chart-mode="combined" aria-pressed="true" class="chart-mode-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm transition">Analisis Gabungan</button>
+                  <button type="button" data-chart-mode="profit" aria-pressed="false" class="chart-mode-btn px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Keuntungan</button>
+                  <button type="button" data-chart-mode="loss" aria-pressed="false" class="chart-mode-btn px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Kerugian</button>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <span class="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Periode</span>
+                <div class="flex space-x-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                  <button data-period="daily" class="chart-period-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm transition">Harian</button>
+                  <button data-period="monthly" class="chart-period-btn px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Bulanan</button>
+                  <button data-period="quarterly" class="chart-period-btn px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Kuartal</button>
+                  <button data-period="yearly" class="chart-period-btn px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Tahunan</button>
+                </div>
               </div>
             </div>
           </div>
@@ -438,7 +516,7 @@
         </div>
       </section>
 
-      <!-- SECTION 6: FILE MANAGER -->
+      <!-- SECTION 7: FILE MANAGER -->
       <section id="tab-files" class="tab-content hidden space-y-6">
         <div class="bg-white p-5 sm:p-8 rounded-3xl shadow-sm border border-slate-200 space-y-5">
           <h2 class="text-lg font-bold text-slate-900 flex items-center space-x-2.5">
@@ -475,797 +553,49 @@
     </div>
   </div>
 
+  <!-- MODERN NOTIFICATION / ALERT MODAL -->
+  <div id="modernAlertModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl transform transition-all">
+      <div id="modernAlertIconWrapper" class="w-12 h-12 mx-auto rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+        <i id="modernAlertIcon" data-lucide="info" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 id="modernAlertTitle" class="text-base font-bold text-slate-900">Informasi</h3>
+        <p id="modernAlertMessage" class="text-xs text-slate-500 mt-1"></p>
+      </div>
+      <button id="modernAlertBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-xs transition">
+        Mengerti
+      </button>
+    </div>
+  </div>
+
+  <!-- MODERN CONFIRMATION MODAL -->
+  <div id="modernConfirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl transform transition-all">
+      <div class="w-12 h-12 mx-auto rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
+        <i data-lucide="help-circle" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 id="modernConfirmTitle" class="text-base font-bold text-slate-900">Konfirmasi</h3>
+        <p id="modernConfirmMessage" class="text-xs text-slate-500 mt-1"></p>
+      </div>
+      <div class="flex space-x-2 pt-2">
+        <button id="modernConfirmNo" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition">
+          Batal
+        </button>
+        <button id="modernConfirmYes" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-xs transition">
+          Ya, Lanjutkan
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- FIREBASE SDKS & APP LOGIC -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyB3gZbhHWy67H9uSM1YduSi1S2cPrwQ_Mo",
-      authDomain: "musicgo-d7c61.firebaseapp.com",
-      projectId: "musicgo-d7c61",
-      storageBucket: "musicgo-d7c61.firebasestorage.app",
-      messagingSenderId: "651668722403",
-      appId: "1:651668722403:web:41cd902cd5698b9c11ebd6",
-      measurementId: "G-VR51P0BMQ1"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const CLOUDINARY_CLOUD_NAME = "dcjdq3sxq";
-    const CLOUDINARY_UPLOAD_PRESET = "tetstist";
-
-    let dbCategories = [
-      { id: '1', name: 'Makanan', price: 15000 },
-      { id: '2', name: 'Minuman', price: 8000 }
-    ];
-
-    let dbCustomers = [
-      { id: '1', name: 'Bpk. Hendra', address: 'Jl. Merdeka No. 45', phone: '081299887766' }
-    ];
-
-    let dbTransactions = [];
-    let currentUser = null;
-    let currentChart = null;
-    let currentChartPeriod = 'daily';
-
-    document.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-      initAppEvents();
-
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          currentUser = user;
-          showMainApp();
-          await loadUserDataFromFirestore();
-        } else {
-          currentUser = null;
-          showLoginScreen();
-        }
-      });
-    });
-
-    function showLoginScreen() {
-      document.getElementById('authScreen').classList.remove('hidden');
-      document.getElementById('mainHeader').classList.add('hidden');
-      document.getElementById('dashboardContent').classList.add('hidden');
-    }
-
-    function showMainApp() {
-      document.getElementById('authScreen').classList.add('hidden');
-      document.getElementById('mainHeader').classList.remove('hidden');
-      document.getElementById('dashboardContent').classList.remove('hidden');
-      document.getElementById('userEmailNav').textContent = currentUser.email;
-      buildDrawerNav();
-    }
-
-    // FIREBASE SYNC
-    async function loadUserDataFromFirestore() {
-      if (!currentUser) return;
-      try {
-        const docRef = doc(db, "artifacts", "bivda-app", "users", currentUser.uid);
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-          const data = snap.data();
-          if (data.categories) dbCategories = data.categories;
-          if (data.customers) dbCustomers = data.customers;
-          if (data.transactions) dbTransactions = data.transactions;
-        } else {
-          await saveUserDataToFirestore();
-        }
-        renderCategories();
-        renderCustomers();
-        renderTransactions();
-        renderFileManager();
-        renderChart();
-      } catch (err) {
-        console.error("Gagal memuat dari Firestore:", err);
-      }
-    }
-
-    async function saveUserDataToFirestore() {
-      if (!currentUser) return;
-      try {
-        const docRef = doc(db, "artifacts", "bivda-app", "users", currentUser.uid);
-        await setDoc(docRef, {
-          categories: dbCategories,
-          customers: dbCustomers,
-          transactions: dbTransactions,
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-      } catch (err) {
-        console.error("Gagal menyimpan ke Firestore:", err);
-      }
-    }
-
-    // EVENTS BINDING
-    function initAppEvents() {
-      document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const pass = document.getElementById('loginPassword').value;
-        const alertBox = document.getElementById('authAlert');
-        alertBox.classList.add('hidden');
-
-        try {
-          await signInWithEmailAndPassword(auth, email, pass);
-        } catch (err) {
-          try {
-            await createUserWithEmailAndPassword(auth, email, pass);
-          } catch (createErr) {
-            alertBox.textContent = createErr.message;
-            alertBox.classList.remove('hidden');
-          }
-        }
-      });
-
-      document.getElementById('btnLogout').addEventListener('click', async () => {
-        if (confirm('Apakah Anda yakin ingin keluar?')) {
-          await signOut(auth);
-        }
-      });
-
-      // Mobile Drawer Trigger & Close
-      const mobileDrawer = document.getElementById('mobileDrawer');
-      const drawerOverlay = document.getElementById('mobileDrawerOverlay');
-      
-      document.getElementById('btnMobileMenu').addEventListener('click', () => {
-        mobileDrawer.classList.remove('-translate-x-full');
-        drawerOverlay.classList.remove('hidden');
-      });
-      document.getElementById('btnCloseDrawer').addEventListener('click', closeDrawer);
-      drawerOverlay.addEventListener('click', closeDrawer);
-
-      function closeDrawer() {
-        mobileDrawer.classList.add('-translate-x-full');
-        drawerOverlay.classList.add('hidden');
-      }
-
-      function buildDrawerNav() {
-        const container = document.getElementById('drawerNavItems');
-        container.innerHTML = '';
-        const tabs = [
-          { id: 'tab-transaksi', label: 'Transaksi', icon: 'receipt' },
-          { id: 'tab-input-banyak', label: 'Input Banyak Nota', icon: 'layers' },
-          { id: 'tab-kategori', label: 'Data Kategori', icon: 'tags' },
-          { id: 'tab-pembeli', label: 'Data Pembeli', icon: 'users' },
-          { id: 'tab-analytics', label: 'Grafik & Analisis BI', icon: 'bar-chart-3' },
-          { id: 'tab-files', label: 'File Manager', icon: 'folder-open' }
-        ];
-
-        tabs.forEach(t => {
-          const btn = document.createElement('button');
-          btn.className = 'flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition';
-          btn.innerHTML = `<i data-lucide="${t.icon}" class="w-5 h-5 text-indigo-600"></i><span>${t.label}</span>`;
-          btn.addEventListener('click', () => {
-            switchTab(t.id);
-            closeDrawer();
-          });
-          container.appendChild(btn);
-        });
-        lucide.createIcons();
-      }
-
-      // Tab Navigation
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          switchTab(btn.getAttribute('data-tab'));
-        });
-      });
-
-      function switchTab(tabId) {
-        document.querySelectorAll('.tab-btn').forEach(b => {
-          b.classList.remove('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/20');
-          b.classList.add('text-slate-600', 'hover:bg-slate-200/60');
-        });
-        const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
-        if (activeBtn) {
-          activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/20');
-          activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-200/60');
-        }
-
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-        document.getElementById(tabId).classList.remove('hidden');
-
-        if (tabId === 'tab-analytics') renderChart();
-        if (tabId === 'tab-files') renderFileManager();
-      }
-
-      // Category Auto Price & Custom Nominal
-      document.getElementById('txCategory').addEventListener('change', (e) => {
-        const val = e.target.value;
-        const customContainer = document.getElementById('txCustomNominalContainer');
-        if (val === 'Lainnya') {
-          customContainer.classList.remove('hidden');
-        } else {
-          customContainer.classList.add('hidden');
-        }
-        updateSingleTotalDisplay();
-      });
-
-      document.getElementById('txQty').addEventListener('input', updateSingleTotalDisplay);
-      document.getElementById('txCustomNominal').addEventListener('input', updateSingleTotalDisplay);
-
-      const dropZone = document.getElementById('dropZoneSingle');
-      const fileInput = document.getElementById('txFilesInput');
-      dropZone.addEventListener('click', () => fileInput.click());
-      fileInput.addEventListener('change', handleSingleFilesSelect);
-
-      document.getElementById('singleTxForm').addEventListener('submit', handleSaveSingleTx);
-      document.getElementById('btnAddBatchRow').addEventListener('click', addBatchRow);
-      document.getElementById('btnSaveBatch').addEventListener('click', handleSaveBatch);
-      document.getElementById('categoryForm').addEventListener('submit', handleSaveCategory);
-      document.getElementById('customerForm').addEventListener('submit', handleSaveCustomer);
-
-      document.getElementById('searchTxInput').addEventListener('input', (e) => {
-        renderTransactions(e.target.value.toLowerCase());
-      });
-
-      document.querySelectorAll('.chart-period-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.chart-period-btn').forEach(b => {
-            b.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
-            b.classList.add('text-slate-600', 'hover:text-slate-900');
-          });
-          btn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
-          btn.classList.remove('text-slate-600', 'hover:text-slate-900');
-          currentChartPeriod = btn.getAttribute('data-period');
-          renderChart();
-        });
-      });
-
-      document.getElementById('btnResetZoom').addEventListener('click', () => {
-        if (currentChart) currentChart.resetZoom();
-      });
-
-      document.getElementById('btnCloseDetailModal').addEventListener('click', () => {
-        document.getElementById('txDetailModal').classList.add('hidden');
-      });
-
-      addBatchRow();
-    }
-
-    function updateSingleTotalDisplay() {
-      const catVal = document.getElementById('txCategory').value;
-      const qty = parseInt(document.getElementById('txQty').value) || 1;
-      let unitPrice = 0;
-
-      if (catVal === 'Lainnya') {
-        unitPrice = parseFloat(document.getElementById('txCustomNominal').value) || 0;
-      } else if (catVal) {
-        const foundCat = dbCategories.find(c => c.name === catVal);
-        if (foundCat) unitPrice = foundCat.price;
-      }
-
-      const total = unitPrice * qty;
-      document.getElementById('txTotalDisplay').value = `Rp ${total.toLocaleString('id-ID')}`;
-    }
-
-    // CATEGORIES
-    function renderCategories() {
-      const select = document.getElementById('txCategory');
-      select.innerHTML = '<option value="">-- Pilih Kategori --</option>';
-      dbCategories.forEach(cat => {
-        select.innerHTML += `<option value="${cat.name}">${cat.name} (Rp ${cat.price.toLocaleString('id-ID')})</option>`;
-      });
-      select.innerHTML += '<option value="Lainnya">Lainnya (Nominal Manual)</option>';
-
-      const tbody = document.getElementById('catTableBody');
-      tbody.innerHTML = '';
-      dbCategories.forEach(cat => {
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3.5 font-semibold text-slate-800">${cat.name}</td>
-            <td class="p-3.5 text-indigo-600 font-medium">Rp ${cat.price.toLocaleString('id-ID')}</td>
-            <td class="p-3.5 text-center">
-              <button onclick="window.deleteCategory('${cat.id}')" class="text-red-500 hover:text-red-700 p-1">
-                <i data-lucide="trash-2" class="w-4 h-4 inline"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      });
-      lucide.createIcons();
-    }
-
-    async function handleSaveCategory(e) {
-      e.preventDefault();
-      const name = document.getElementById('catName').value;
-      const price = parseFloat(document.getElementById('catPrice').value);
-
-      dbCategories.push({ id: 'cat_' + Date.now(), name, price });
-      await saveUserDataToFirestore();
-      renderCategories();
-      document.getElementById('categoryForm').reset();
-      alert('Kategori berhasil disimpan!');
-    }
-
-    window.deleteCategory = async function(id) {
-      if (confirm('Konfirmasi hapus kategori ini?')) {
-        dbCategories = dbCategories.filter(c => c.id !== id);
-        await saveUserDataToFirestore();
-        renderCategories();
-      }
-    }
-
-    // CUSTOMERS
-    function renderCustomers() {
-      const select = document.getElementById('txCustomer');
-      select.innerHTML = '<option value="Umum / Tanpa Nama">Umum / Tanpa Nama</option>';
-      dbCustomers.forEach(cust => {
-        select.innerHTML += `<option value="${cust.name}">${cust.name}</option>`;
-      });
-
-      const tbody = document.getElementById('custTableBody');
-      tbody.innerHTML = '';
-      dbCustomers.forEach(cust => {
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3.5 font-semibold text-slate-800">${cust.name}</td>
-            <td class="p-3.5 text-slate-500">${cust.address || '-'}</td>
-            <td class="p-3.5 text-slate-500">${cust.phone || '-'}</td>
-            <td class="p-3.5 text-center">
-              <button onclick="window.deleteCustomer('${cust.id}')" class="text-red-500 hover:text-red-700 p-1">
-                <i data-lucide="trash-2" class="w-4 h-4 inline"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      });
-      lucide.createIcons();
-    }
-
-    async function handleSaveCustomer(e) {
-      e.preventDefault();
-      const name = document.getElementById('custName').value;
-      const address = document.getElementById('custAddress').value;
-      const phone = document.getElementById('custPhone').value;
-
-      dbCustomers.push({ id: 'cust_' + Date.now(), name, address, phone });
-      await saveUserDataToFirestore();
-      renderCustomers();
-      document.getElementById('customerForm').reset();
-      alert('Data pembeli berhasil disimpan!');
-    }
-
-    window.deleteCustomer = async function(id) {
-      if (confirm('Konfirmasi hapus data pembeli ini?')) {
-        dbCustomers = dbCustomers.filter(c => c.id !== id);
-        await saveUserDataToFirestore();
-        renderCustomers();
-      }
-    }
-
-    // CLOUDINARY UPLOAD
-    let selectedSingleFiles = [];
-
-    function handleSingleFilesSelect(e) {
-      const files = Array.from(e.target.files);
-      const container = document.getElementById('txFilesPreview');
-      container.innerHTML = '';
-      selectedSingleFiles = [];
-
-      files.forEach(file => {
-        if (file.size > 10 * 1024 * 1024) {
-          alert(`File ${file.name} melebihi batas 10MB!`);
-          return;
-        }
-        selectedSingleFiles.push(file);
-        const img = document.createElement('img');
-        img.src = URL.createObjectURL(file);
-        img.className = 'w-14 h-14 object-cover rounded-xl border border-slate-300 shadow-sm';
-        container.appendChild(img);
-      });
-    }
-
-    async function uploadFileToCloudinary(file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!res.ok) throw new Error('Gagal unggah berkas ke Cloudinary');
-      const data = await res.json();
-      return data.secure_url;
-    }
-
-    // SINGLE TRANSACTION
-    async function handleSaveSingleTx(e) {
-      e.preventDefault();
-      if (!confirm('Apakah Anda yakin ingin menyimpan nota transaksi ini?')) return;
-
-      const btn = document.getElementById('btnSaveSingleTx');
-      btn.disabled = true;
-      btn.innerHTML = '<span>Mengunggah File & Menyimpan...</span>';
-
-      try {
-        const uploadedUrls = [];
-        for (const file of selectedSingleFiles) {
-          const url = await uploadFileToCloudinary(file);
-          uploadedUrls.push(url);
-        }
-
-        const catVal = document.getElementById('txCategory').value;
-        const qty = parseInt(document.getElementById('txQty').value) || 1;
-        let unitPrice = 0;
-
-        if (catVal === 'Lainnya') {
-          unitPrice = parseFloat(document.getElementById('txCustomNominal').value) || 0;
-        } else {
-          const found = dbCategories.find(c => c.name === catVal);
-          if (found) unitPrice = found.price;
-        }
-
-        const txRecord = {
-          id: 'tx_' + Date.now(),
-          date: document.getElementById('txDate').value,
-          itemName: document.getElementById('txItemName').value,
-          category: catVal,
-          qty: qty,
-          customer: document.getElementById('txCustomer').value,
-          total: unitPrice * qty,
-          invoiceNo: document.getElementById('txInvoiceNo').value,
-          files: uploadedUrls,
-          isGroup: false
-        };
-
-        dbTransactions.unshift(txRecord);
-        await saveUserDataToFirestore();
-        renderTransactions();
-        document.getElementById('singleTxForm').reset();
-        document.getElementById('txFilesPreview').innerHTML = '';
-        selectedSingleFiles = [];
-        updateSingleTotalDisplay();
-        alert('Transaksi nota berhasil disimpan & disinkronkan ke Cloud!');
-      } catch (err) {
-        alert('Error: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i><span>Simpan Transaksi Nota</span>';
-        lucide.createIcons();
-      }
-    }
-
-    // BATCH ENTRY
-    function addBatchRow() {
-      const tbody = document.getElementById('batchTableBody');
-      const rowId = Date.now() + Math.random().toString(36).substr(2, 4);
-
-      let categoryOptions = '<option value="">-- Pilih --</option>';
-      dbCategories.forEach(c => categoryOptions += `<option value="${c.name}">${c.name}</option>`);
-      categoryOptions += '<option value="Lainnya">Lainnya</option>';
-
-      let customerOptions = '<option value="Umum / Tanpa Nama">Umum</option>';
-      dbCustomers.forEach(c => customerOptions += `<option value="${c.name}">${c.name}</option>`);
-
-      const tr = document.createElement('tr');
-      tr.id = `batchRow_${rowId}`;
-      tr.className = 'border-b border-slate-100 hover:bg-slate-50 transition';
-      tr.innerHTML = `
-        <td class="p-2.5"><input type="date" class="b-date w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs text-slate-800" required></td>
-        <td class="p-2.5"><input type="text" placeholder="Nama Barang" class="b-name w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs text-slate-800" required></td>
-        <td class="p-2.5"><select class="b-cat w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs text-slate-800">${categoryOptions}</select></td>
-        <td class="p-2.5"><input type="number" value="1" min="1" class="b-qty w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs text-slate-800"></td>
-        <td class="p-2.5"><select class="b-cust w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs text-slate-800">${customerOptions}</select></td>
-        <td class="p-2.5"><input type="number" placeholder="Total (Rp)" class="b-total w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-bold text-indigo-600"></td>
-        <td class="p-2.5"><input type="text" placeholder="No Nota" class="b-inv w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs text-slate-800"></td>
-        <td class="p-2.5"><input type="file" multiple accept="image/*" class="b-file w-full text-[10px] text-slate-500"></td>
-        <td class="p-2.5 text-center">
-          <button onclick="document.getElementById('batchRow_${rowId}').remove()" class="text-red-500 hover:text-red-700 p-1"><i data-lucide="trash" class="w-4 h-4"></i></button>
-        </td>
-      `;
-
-      tbody.appendChild(tr);
-      lucide.createIcons();
-    }
-
-    async function handleSaveBatch() {
-      const title = document.getElementById('batchGroupTitle').value.trim();
-      if (!title) {
-        alert('Harap isi Judul Grup Nota terlebih dahulu!');
-        return;
-      }
-
-      const rows = document.querySelectorAll('#batchTableBody tr');
-      if (rows.length === 0) {
-        alert('Minimal buat 1 baris transaksi!');
-        return;
-      }
-
-      if (!confirm(`Simpan ${rows.length} nota ke dalam grup "${title}"?`)) return;
-
-      const btn = document.getElementById('btnSaveBatch');
-      btn.disabled = true;
-      btn.textContent = 'Menyimpan Batch...';
-
-      try {
-        const items = [];
-        let groupTotal = 0;
-
-        for (const row of rows) {
-          const date = row.querySelector('.b-date').value;
-          const name = row.querySelector('.b-name').value;
-          const cat = row.querySelector('.b-cat').value;
-          const qty = parseInt(row.querySelector('.b-qty').value) || 1;
-          const cust = row.querySelector('.b-cust').value;
-          const total = parseFloat(row.querySelector('.b-total').value) || 0;
-          const inv = row.querySelector('.b-inv').value;
-          const fileInput = row.querySelector('.b-file');
-
-          const uploadedUrls = [];
-          if (fileInput.files.length > 0) {
-            for (const file of Array.from(fileInput.files)) {
-              if (file.size <= 10 * 1024 * 1024) {
-                const url = await uploadFileToCloudinary(file);
-                uploadedUrls.push(url);
-              }
-            }
-          }
-
-          items.push({ date, itemName: name, category: cat, qty, customer: cust, total, invoiceNo: inv, files: uploadedUrls });
-          groupTotal += total;
-        }
-
-        const groupRecord = {
-          id: 'grp_' + Date.now(),
-          isGroup: true,
-          title: title,
-          total: groupTotal,
-          date: items[0]?.date || new Date().toISOString().split('T')[0],
-          items: items
-        };
-
-        dbTransactions.unshift(groupRecord);
-        await saveUserDataToFirestore();
-        renderTransactions();
-
-        document.getElementById('batchGroupTitle').value = '';
-        document.getElementById('batchTableBody').innerHTML = '';
-        addBatchRow();
-        alert('Seluruh nota grup berhasil disimpan & disinkronkan ke Cloud!');
-      } catch (err) {
-        alert('Gagal menyimpan grup: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i><span>Simpan Semua Nota Grup Ini</span>';
-        lucide.createIcons();
-      }
-    }
-
-    // TRANSACTIONS TABLE
-    function renderTransactions(filterText = '') {
-      const tbody = document.getElementById('txTableBody');
-      tbody.innerHTML = '';
-
-      const filtered = dbTransactions.filter(t => {
-        if (!filterText) return true;
-        if (t.isGroup) {
-          return t.title.toLowerCase().includes(filterText) || t.items.some(i => i.itemName.toLowerCase().includes(filterText));
-        }
-        return t.itemName.toLowerCase().includes(filterText) || t.invoiceNo.toLowerCase().includes(filterText) || t.category.toLowerCase().includes(filterText);
-      });
-
-      filtered.forEach(t => {
-        if (t.isGroup) {
-          tbody.innerHTML += `
-            <tr class="bg-indigo-50/70 hover:bg-indigo-50 font-semibold text-indigo-950 border-b border-slate-200">
-              <td class="p-3">${t.date}</td>
-              <td class="p-3 flex items-center space-x-2">
-                <span class="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">GRUP</span>
-                <span>${t.title}</span>
-              </td>
-              <td class="p-3 text-slate-500">${t.items.length} Nota</td>
-              <td class="p-3 text-center">-</td>
-              <td class="p-3 text-slate-500">Beragam</td>
-              <td class="p-3 text-right font-black text-indigo-700">Rp ${t.total.toLocaleString('id-ID')}</td>
-              <td class="p-3 text-slate-500">-</td>
-              <td class="p-3 text-center text-xs text-slate-500">${t.items.reduce((acc, cur) => acc + (cur.files?.length || 0), 0)} Berkas</td>
-              <td class="p-3 text-center space-x-1.5">
-                <button onclick="window.viewDetail('${t.id}')" class="text-indigo-600 hover:text-indigo-800 p-1"><i data-lucide="eye" class="w-4 h-4 inline"></i></button>
-                <button onclick="window.deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700 p-1"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
-              </td>
-            </tr>
-          `;
-        } else {
-          tbody.innerHTML += `
-            <tr class="hover:bg-slate-50 border-b border-slate-100 transition">
-              <td class="p-3">${t.date}</td>
-              <td class="p-3 font-semibold text-slate-800">${t.itemName}</td>
-              <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full text-[11px] font-medium">${t.category}</span></td>
-              <td class="p-3 text-center">${t.qty}</td>
-              <td class="p-3 text-slate-600">${t.customer || 'Umum'}</td>
-              <td class="p-3 text-right font-bold text-slate-900">Rp ${t.total.toLocaleString('id-ID')}</td>
-              <td class="p-3 font-mono text-slate-500">${t.invoiceNo}</td>
-              <td class="p-3 text-center">
-                ${t.files && t.files.length ? `<a href="${t.files[0]}" target="_blank" class="text-indigo-600 hover:underline">${t.files.length} File</a>` : '-'}
-              </td>
-              <td class="p-3 text-center space-x-1.5">
-                <button onclick="window.viewDetail('${t.id}')" class="text-indigo-600 hover:text-indigo-800 p-1"><i data-lucide="eye" class="w-4 h-4 inline"></i></button>
-                <button onclick="window.deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700 p-1"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
-              </td>
-            </tr>
-          `;
-        }
-      });
-      lucide.createIcons();
-    }
-
-    window.viewDetail = function(id) {
-      const item = dbTransactions.find(t => t.id === id);
-      if (!item) return;
-
-      const modal = document.getElementById('txDetailModal');
-      const body = document.getElementById('modalTxBody');
-
-      if (item.isGroup) {
-        document.getElementById('modalTxTitle').textContent = `Grup: ${item.title}`;
-        document.getElementById('modalTxGroupSubtitle').textContent = `Total Biaya: Rp ${item.total.toLocaleString('id-ID')} | ${item.items.length} Nota`;
-
-        let html = '<div class="space-y-4">';
-        item.items.forEach((sub, idx) => {
-          html += `
-            <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50 space-y-2">
-              <div class="flex justify-between font-bold border-b border-slate-200 pb-2 text-slate-900">
-                <span>#${idx + 1} ${sub.itemName}</span>
-                <span class="text-indigo-600">Rp ${sub.total.toLocaleString('id-ID')}</span>
-              </div>
-              <div class="grid grid-cols-2 text-xs text-slate-600 gap-1">
-                <p><strong>Tanggal:</strong> ${sub.date}</p>
-                <p><strong>No Nota:</strong> ${sub.invoiceNo || '-'}</p>
-                <p><strong>Kategori:</strong> ${sub.category}</p>
-                <p><strong>Pembeli:</strong> ${sub.customer}</p>
-              </div>
-              ${sub.files && sub.files.length ? `
-                <div class="flex gap-2 pt-2">
-                  ${sub.files.map(f => `<a href="${f}" target="_blank"><img src="${f}" class="w-16 h-16 object-cover rounded-xl border border-slate-300"></a>`).join('')}
-                </div>
-              ` : ''}
-            </div>
-          `;
-        });
-        html += '</div>';
-        body.innerHTML = html;
-      } else {
-        document.getElementById('modalTxTitle').textContent = item.itemName;
-        document.getElementById('modalTxGroupSubtitle').textContent = `No Nota: ${item.invoiceNo}`;
-
-        body.innerHTML = `
-          <div class="grid grid-cols-2 gap-4 text-sm bg-slate-50 p-5 rounded-2xl border border-slate-200">
-            <p><strong>Tanggal:</strong> ${item.date}</p>
-            <p><strong>Kategori:</strong> ${item.category}</p>
-            <p><strong>Jumlah (Qty):</strong> ${item.qty}</p>
-            <p><strong>Pembeli:</strong> ${item.customer}</p>
-            <p class="col-span-2 text-lg font-black text-indigo-600">Total: Rp ${item.total.toLocaleString('id-ID')}</p>
-          </div>
-          ${item.files && item.files.length ? `
-            <div>
-              <h4 class="font-bold text-xs mb-2 text-slate-600">Berkas / Lampiran Nota:</h4>
-              <div class="flex flex-wrap gap-3">
-                ${item.files.map(f => `<a href="${f}" target="_blank"><img src="${f}" class="w-32 h-32 object-cover rounded-2xl border border-slate-300 shadow-sm"></a>`).join('')}
-              </div>
-            </div>
-          ` : ''}
-        `;
-      }
-      modal.classList.remove('hidden');
-    }
-
-    window.deleteTransaction = async function(id) {
-      if (confirm('Apakah Anda yakin ingin menghapus catatan transaksi ini secara permanen?')) {
-        dbTransactions = dbTransactions.filter(t => t.id !== id);
-        await saveUserDataToFirestore();
-        renderTransactions();
-        renderFileManager();
-      }
-    }
-
-    // FILE MANAGER
-    function renderFileManager() {
-      const grid = document.getElementById('fileManagerGrid');
-      grid.innerHTML = '';
-
-      const allFiles = [];
-      dbTransactions.forEach(t => {
-        if (t.isGroup) {
-          t.items.forEach(i => {
-            if (i.files) i.files.forEach(f => allFiles.push({ url: f, name: i.itemName, date: i.date }));
-          });
-        } else {
-          if (t.files) t.files.forEach(f => allFiles.push({ url: f, name: t.itemName, date: t.date }));
-        }
-      });
-
-      if (allFiles.length === 0) {
-        grid.innerHTML = '<p class="col-span-full text-xs text-slate-400 italic text-center py-12">Belum ada file/gambar nota yang diunggah.</p>';
-        return;
-      }
-
-      allFiles.forEach(file => {
-        grid.innerHTML += `
-          <div class="border border-slate-200 rounded-2xl p-2.5 bg-slate-50 hover:border-indigo-400 transition group">
-            <a href="${file.url}" target="_blank">
-              <img src="${file.url}" class="w-full h-28 object-cover rounded-xl mb-2 group-hover:scale-[1.02] transition">
-            </a>
-            <p class="text-[11px] font-bold truncate text-slate-800">${file.name}</p>
-            <p class="text-[9px] text-slate-400">${file.date}</p>
-          </div>
-        `;
-      });
-    }
-
-    // ANALYTICS CHART WITH ZOOM & PAN
-    function renderChart() {
-      const ctx = document.getElementById('biChart').getContext('2d');
-      if (currentChart) currentChart.destroy();
-
-      const groupData = {};
-      dbTransactions.forEach(t => {
-        const val = t.total || 0;
-        const dateKey = t.date || 'Undated';
-        if (!groupData[dateKey]) groupData[dateKey] = 0;
-        groupData[dateKey] += val;
-      });
-
-      const labels = [];
-      const totals = [];
-      Object.keys(groupData).sort().forEach(k => {
-        labels.push(k);
-        totals.push(groupData[k]);
-      });
-
-      currentChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels.length ? labels : ['Belum ada data'],
-          datasets: [{
-            label: 'Total Penjualan (Rp)',
-            data: totals.length ? totals : [0],
-            borderColor: '#4f46e5',
-            backgroundColor: 'rgba(79, 70, 229, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.35,
-            pointBackgroundColor: '#4f46e5',
-            pointRadius: 4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            zoom: {
-              zoom: {
-                wheel: { enabled: true },
-                pinch: { enabled: true },
-                mode: 'xy',
-              },
-              pan: {
-                enabled: true,
-                mode: 'xy',
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: { color: 'rgba(0, 0, 0, 0.05)' },
-              ticks: { color: '#64748b' }
-            },
-            y: {
-              grid: { color: 'rgba(0, 0, 0, 0.05)' },
-              ticks: { color: '#64748b' }
-            }
-          }
-        }
-      });
+  <script>
+    if (window.location.protocol === 'file:') {
+      document.getElementById('app').classList.add('hidden');
     }
   </script>
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
